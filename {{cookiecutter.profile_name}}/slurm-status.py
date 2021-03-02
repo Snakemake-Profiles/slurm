@@ -6,17 +6,18 @@ import sys
 import time
 import logging
 
+from cookiecutter_settings import CLUSTER_NAME
+
 logger = logging.getLogger("__name__")
 
 STATUS_ATTEMPTS = 20
 
 jobid = sys.argv[1]
 
-{% if cookiecutter.cluster_name %}  # noqa: E999,E225
-cluster = "--cluster={{cookiecutter.cluster_name}}"
-{% else %}  # noqa: E225
-cluster = ""
-{% endif %}  # noqa: E225
+if CLUSTER_NAME:
+    cluster = "--cluster=" + CLUSTER_NAME
+else:
+    cluster = ""
 
 for i in range(STATUS_ATTEMPTS):
     try:

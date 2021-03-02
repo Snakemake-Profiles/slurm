@@ -5,15 +5,17 @@ Snakemake SLURM submit script.
 import warnings  # use warnings.warn() rather than print() to output info in this script
 
 from snakemake.utils import read_job_properties
+from cookiecutter_settings import (
+    SBATCH_DEFAULTS,
+    CLUSTER_NAME,
+    CLUSTER_CONFIG,
+    ADVANCED_ARGUMENT_CONVERSION
+)
 
 import slurm_utils
 
-# cookiecutter arguments
-SBATCH_DEFAULTS = """{{cookiecutter.sbatch_defaults}}{% if cookiecutter.cluster_name %} cluster={{cookiecutter.cluster_name}}{% endif %}"""
-CLUSTER_CONFIG = "{{cookiecutter.cluster_config}}"
-ADVANCED_ARGUMENT_CONVERSION = {"yes": True, "no": False}[
-    "{{cookiecutter.advanced_argument_conversion}}"
-]
+if CLUSTER_NAME:
+    SBATCH_DEFAULTS = SBATCH_DEFAULTS + " cluster=" + CLUSTER_NAME
 
 RESOURCE_MAPPING = {
     "time": ("time", "runtime", "walltime"),
