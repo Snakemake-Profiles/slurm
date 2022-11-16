@@ -144,11 +144,22 @@ def format_values(dictionary, job_properties):
 
 def convert_job_properties(job_properties, resource_mapping=None):
     options = {}
-    if resource_mapping is None:
-        resource_mapping = {}
     resources = job_properties.get("resources", {})
-    for k, v in resource_mapping.items():
-        options.update({k: resources[i] for i in v if i in resources})
+    if resource_mapping is not None:
+        resource_mapping_dict = {v: k for k, vs in resource_mapping.items() for v in vs}
+        # update resource, but keep the larger value
+        # "mem", "mem-per-cpu", "nodes", "time"
+        for resource_alias, resource_value in resources.items():
+            if resource_alias in resource_mapping_dict:
+                resource_name = resource_mapping_dict[resource_alias]
+                if resource_name in ["mem", "mem-per-cpu"]:
+                    if _convert_units_to_mb(resource_value) > _convert_units_to_mb(options.get(resource_name, 0)):
+                        options[resource_name] = resource_value
+                if resource_name == "nodes":
+                    if int(resource_value) > int(options.get(resource_name, 0)):
+                        options[resource_name] = resource_value
+                else:
+                    options[resource_name] = resource_value
 
     if "threads" in job_properties:
         options["cpus-per-task"] = job_properties["threads"]
