@@ -15,4 +15,4 @@ dependencies:
   - pyflakes
   - snakemake
   - urllib3
-  - cryptography <=37.0.0
+  - cryptography

@@ -6,7 +6,7 @@
 DOCKER_COMPOSE=${DOCKER_COMPOSE:=docker-compose.yaml}
 
 # Images
-SNAKEMAKE_IMAGE=${SNAKEMAKE_IMAGE:=quay.io/biocontainers/snakemake:7.3.2--hdfd78af_0}
+SNAKEMAKE_IMAGE=${SNAKEMAKE_IMAGE:=quay.io/biocontainers/snakemake:7.30.1--hdfd78af_0}
 SLURM_IMAGE=${SLURM_IMAGE:=giovtorres/docker-centos7-slurm:20.11.8}
 
 docker pull $SNAKEMAKE_IMAGE

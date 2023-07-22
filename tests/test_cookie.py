@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import sys
 import pytest
+from unittest.mock import patch
 
 
 @pytest.mark.parametrize("sidecar", ["yes", "no"])
@@ -20,13 +21,20 @@ def test_bake_project(cookies, sidecar):
 
 def test_cookiecutter(cookies, monkeypatch):
     result = cookies.bake(template=str(pytest.cookie_template))
-    monkeypatch.syspath_prepend(str(result.project_path))
-    from CookieCutter import CookieCutter
-    assert CookieCutter.SBATCH_DEFAULTS == ""
-    assert CookieCutter.CLUSTER_NAME == ""
-    assert CookieCutter.CLUSTER_CONFIG == ""
-    assert CookieCutter.get_cluster_option() == ""
-    sys.modules.pop("CookieCutter")
+    assert result.exit_code == 0
+    assert result.exception is None
+
+    assert result.project_path.name == "slurm"
+    assert result.project_path.is_dir()
+    with patch.dict(sys.modules):
+        if "CookieCutter" in sys.modules:
+            del sys.modules["CookieCutter"]
+        monkeypatch.syspath_prepend(str(result.project_path))
+        from CookieCutter import CookieCutter
+        assert CookieCutter.SBATCH_DEFAULTS == ""
+        assert CookieCutter.CLUSTER_NAME == ""
+        assert CookieCutter.CLUSTER_CONFIG == ""
+        assert CookieCutter.get_cluster_option() == ""
 
 
 def test_cookiecutter_extra_context(cookies, monkeypatch):
@@ -34,10 +42,17 @@ def test_cookiecutter_extra_context(cookies, monkeypatch):
                           extra_context={"sbatch_defaults": "account=foo",
                                          "cluster_name": "dusk",
                                          "cluster_config": "slurm.yaml"})
-    monkeypatch.syspath_prepend(str(result.project_path))
-    from CookieCutter import CookieCutter
-    assert CookieCutter.SBATCH_DEFAULTS == "account=foo"
-    assert CookieCutter.CLUSTER_NAME == "dusk"
-    assert CookieCutter.CLUSTER_CONFIG == "slurm.yaml"
-    assert CookieCutter.get_cluster_option() == "--cluster=dusk"
-    sys.modules.pop("CookieCutter")
+    assert result.exit_code == 0
+    assert result.exception is None
+
+    assert result.project_path.name == "slurm"
+    assert result.project_path.is_dir()
+    with patch.dict(sys.modules):
+        if "CookieCutter" in sys.modules:
+            del sys.modules["CookieCutter"]
+        monkeypatch.syspath_prepend(str(result.project_path))
+        from CookieCutter import CookieCutter
+        assert CookieCutter.SBATCH_DEFAULTS == "account=foo"
+        assert CookieCutter.CLUSTER_NAME == "dusk"
+        assert CookieCutter.CLUSTER_CONFIG == "slurm.yaml"
+        assert CookieCutter.get_cluster_option() == "--cluster=dusk"
