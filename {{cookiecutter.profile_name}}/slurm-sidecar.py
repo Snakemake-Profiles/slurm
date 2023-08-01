@@ -103,7 +103,10 @@ class PollSqueueThread(threading.Thread):
         """Return the job state for the given jobid."""
         jobid = str(jobid)
         if jobid not in self.states:
-            self.states[jobid] = self._get_state_sacct(jobid)
+            try:
+                self.states[jobid] = self._get_state_sacct(jobid)
+            except:
+                return "__not_seen_yet__"
         return self.states.get(jobid, "__not_seen_yet__")
 
     def register_job(self, jobid):
@@ -122,17 +125,22 @@ class PollSqueueThread(threading.Thread):
             try:
                 logger.debug("Calling %s (try %d)", cmd, try_num)
                 output = subprocess.check_output(cmd, timeout=self.squeue_timeout, text=True)
-                break
             except subprocess.TimeoutExpired as e:
-                logger.debug("Call to %s timed out (try %d of %d)", cmd, try_num, self.max_tries)
+                logger.warning("Call to %s timed out (try %d of %d)", cmd, try_num, self.max_tries)
+                continue
             except subprocess.CalledProcessError as e:
-                logger.debug("Call to %s failed (try %d of %d)", cmd, try_num, self.max_tries)
-        if try_num >= self.max_tries:
-            raise Exception("Problem with call to %s" % cmd)
-        else:
-            parsed = {x.split("|")[0]: x.split("|")[1] for x in output.strip().split("\n")}
-            logger.debug("Returning state of %s as %s", jobid, parsed[jobid])
-            return parsed[jobid]
+                logger.warning("Call to %s failed (try %d of %d)", cmd, try_num, self.max_tries)
+                continue
+            try:
+                parsed = {x.split("|")[0]: x.split("|")[1] for x in output.strip().split("\n")}
+                logger.debug("Returning state of %s as %s", jobid, parsed[jobid])
+                return parsed[jobid]
+            except IndexError:
+                logger.warning("Could not parse %s (try %d of %d)", repr(output), try_num, self.max_tries)
+            secs = try_num / 2.0
+            loger.info("Sleeping %f seconds", secs)
+            time.sleep(secs)
+        raise Exception("Problem with call to %s" % cmd)
 
     def stop(self):
         """Flag thread to stop execution"""
@@ -209,6 +217,10 @@ class JobStateHttpHandler(http.server.BaseHTTPRequestHandler):
             return
         # Otherwise, query job ID status
         job_id = self.path[len("/job/status/") :]
+        try:
+            job_id=job_id.split("%20")[3]
+        except IndexError:
+            pass
         logger.debug("Querying for job ID %s" % repr(job_id))
         status = self.server.poll_thread.get_state(job_id)
         logger.debug("Status: %s" % status)
