@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Run a Snakemake v7+ sidecar process for Slurm
 
-This sidecar process will poll ``squeue --me --format='%i,%T'`` every 60
-seconds by default (use environment variable ``SNAKEMAKE_SLURM_SQUEUE_WAIT``
-for adjusting this).
+This sidecar process will poll ``squeue --user [user] --format='%i,%T'``
+every 60 seconds by default (use environment variable
+``SNAKEMAKE_SLURM_SQUEUE_WAIT`` for adjusting this).
 
 Note that you have to adjust the value to fit to your ``MinJobAge`` Slurm
 configuration.  Jobs remain at least ``MinJobAge`` seconds known to the
@@ -63,7 +63,7 @@ class PollSqueueThread(threading.Thread):
         squeue_cmd,
         squeue_timeout=2,
         sleep_time=0.01,
-        max_tries=10,
+        max_tries=3,
         *args,
         **kwargs
     ):
@@ -151,7 +151,7 @@ class PollSqueueThread(threading.Thread):
         """Run the call to ``squeue``"""
         cluster = CookieCutter.get_cluster_option()
         try_num = 0
-        cmd = [SQUEUE_CMD, "--me", "--format=%i,%T", "--state=all"]
+        cmd = [SQUEUE_CMD, "--user={}".format(os.environ.get("USER")), "--format=%i,%T", "--state=all"]
         if cluster:
             cmd.append(cluster)
         while try_num < self.max_tries:
@@ -218,8 +218,6 @@ class JobStateHttpHandler(http.server.BaseHTTPRequestHandler):
         # Otherwise, query job ID status
         job_id = self.path[len("/job/status/") :]
         try:
-            logger.debug("CLEMENS:")
-            logger.debug(job_id)
             job_id=job_id.split("%20")[3]
         except IndexError:
             pass
@@ -300,8 +298,8 @@ def main():
     poll_thread = PollSqueueThread(SQUEUE_WAIT, SQUEUE_CMD, name="poll-squeue")
     poll_thread.start()
 
-    # Initialize HTTP server that makes available the output of ``squeue --me`` in a
-    # controlled fashion.
+    # Initialize HTTP server that makes available the output of ``squeue --user [user]``
+    # in a controlled fashion.
     http_server = JobStateHttpServer(poll_thread)
     http_thread = threading.Thread(name="http-server", target=http_server.serve_forever)
     http_thread.start()
