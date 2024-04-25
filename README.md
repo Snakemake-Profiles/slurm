@@ -18,8 +18,6 @@ SnakemakeProfiles/slurm](https://github.com/Snakemake-Profiles/slurm/workflows/T
       configuration](#parsing-arguments-to-slurm-sbatch-and-resource-configuration)
     - [Rule specific resource
       configuration](#rule-specific-resource-configuration)
-    - [Advanced argument conversion
-      (EXPERIMENTAL)](#advanced-argument-conversion-experimental)
     - [Cluster configuration file](#cluster-configuration-file)
 - [Tests](#tests)
     - [Testing on a HPC running
@@ -30,11 +28,28 @@ SnakemakeProfiles/slurm](https://github.com/Snakemake-Profiles/slurm/workflows/T
     - [Anatomy of the tests (WIP)](#anatomy-of-the-tests-wip)
     - [Adding new tests (WIP)](#adding-new-tests-wip)
 
+> [!IMPORTANT]
+>
+> **Snakemake version 8 unsupported**
+>
+> Snakemake version 8 introduces breaking changes with respect to the Snakemake cookiecutter profile. One new
+> feature is that execution of jobs on a cluster or the cloud are handled by
+> [executor plugins](https://snakemake.readthedocs.io/en/stable/tutorial/additional_features.html#cluster-or-cloud-execution).
+> For instance, there is a
+> [dedicated executor plugin for SLURM](https://snakemake.github.io/snakemake-plugin-catalog/plugins/executor/slurm.html) that
+> provides much of the functionality that was previously catered for by this snakemake profile. Profiles are still needed, but their
+> role changes somewhat to that of fine-tuning executor plugins for particular sites, only requiring the yaml configuration
+> file.
+>
+> With this in mind, support for Snakemake version 8 has currently been put on hold and I recommend that users consult
+> the executor plugin documentation for slurm.
+>
+
 ## Introduction
 
 This cookiecutter provides a template Snakemake profile for configuring
 Snakemake to run on the [SLURM Workload
-Manager](https://slurm.schedmd.com/). The profile defines the following scripts
+Manager](https://slurm.schedmd.com/) for **Snakemake version <=7**. The profile defines the following scripts
 
 1. `slurm-submit.py` - submits a jobscript to slurm
 2. `slurm-jobscript.sh` - a template jobscript
