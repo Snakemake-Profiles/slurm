@@ -6,7 +6,7 @@ SnakemakeProfiles/slurm](https://github.com/Snakemake-Profiles/slurm/workflows/T
 > ## Snakemake version 8 currently unsupported
 >
 > Snakemake version 8 introduces breaking changes with respect to the Snakemake cookiecutter profile. One new
-> feature is that execution of jobs on a cluster or the cloud are handled by
+> feature is that execution of jobs on a cluster or the cloud is handled by
 > [executor plugins](https://snakemake.readthedocs.io/en/stable/tutorial/additional_features.html#cluster-or-cloud-execution).
 > For instance, there is a
 > [dedicated executor plugin for SLURM](https://snakemake.github.io/snakemake-plugin-catalog/plugins/executor/slurm.html) that
