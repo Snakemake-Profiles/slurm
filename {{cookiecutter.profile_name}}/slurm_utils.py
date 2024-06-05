@@ -42,8 +42,15 @@ def _convert_units_to_mb(memory):
 def parse_jobscript():
     """Minimal CLI to require/only accept single positional argument."""
     p = argparse.ArgumentParser(description="SLURM snakemake submit script")
-    p.add_argument("jobscript", help="Snakemake jobscript with job properties.")
-    return p.parse_args().jobscript
+    p.add_argument(
+        "jobscript",
+        help="Snakemake jobscript with job properties and dependencies.",
+        nargs='+'
+    )
+    args = p.parse_args()
+    if len(args) > 1:
+        return args.jobscript[-1], list(set(args.jobscript[:-1]))
+    return args.jobscript[-1], ''
 
 
 def parse_sbatch_defaults(parsed):

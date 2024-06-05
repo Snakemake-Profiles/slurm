@@ -46,7 +46,7 @@ RESOURCE_MAPPING = {
 }
 
 # parse job
-jobscript = slurm_utils.parse_jobscript()
+jobscript, dependencies = slurm_utils.parse_jobscript()
 job_properties = read_job_properties(jobscript)
 
 sbatch_options = {}
@@ -73,10 +73,14 @@ if "time" in sbatch_options:
     duration = str(sbatch_options["time"])
     sbatch_options["time"] = str(slurm_utils.Time(duration))
 
-# 6) Format pattern in snakemake style
+# 6) Add job dependencies for immediate-submit
+if dependencies:
+    sbatch_options.update({'dependency': ':'.join(['afterok'] + dependencies)})
+
+# 7) Format pattern in snakemake style
 sbatch_options = slurm_utils.format_values(sbatch_options, job_properties)
 
-# 7) create output and error filenames and paths
+# 8) create output and error filenames and paths
 joblog = slurm_utils.JobLog(job_properties)
 log = ""
 if "output" not in sbatch_options and CookieCutter.get_cluster_logpath():
